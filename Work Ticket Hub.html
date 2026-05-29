@@ -1,0 +1,1168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Work Ticket Hub</title>
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --bg-body: #eef2f8;
+            --card-bg: #ffffff;
+            --text-primary: #111c3a;
+            --text-secondary: #5a6e8a;
+            --text-muted: #9aa9c1;
+            --border-light: #eef3fc;
+            --border-input: #dde3ef;
+            --btn-primary-bg: #2a3e77;
+            --btn-primary-hover: #1f315c;
+            --btn-success-bg: #10b981;
+            --btn-success-hover: #059669;
+            --btn-danger-bg: #ef4444;
+            --btn-danger-hover: #dc2626;
+            --btn-warning-bg: #f59e0b;
+            --btn-warning-hover: #d97706;
+            --btn-import-bg: #f97316;
+            --btn-import-hover: #ea580c;
+            --accent-blue: #2e5bff;
+            --kpi-icon-bg: #eef3ff;
+            --table-header: #f8fafd;
+            --table-hover: #f5f8fe;
+            --tag-bg: #eef3ff;
+            --tag-text: #2e5bff;
+            --tag-artwork-bg: #eef3ff;
+            --tag-artwork-text: #2e5bff;
+            --tag-prepress-bg: #fef3c7;
+            --tag-prepress-text: #b45309;
+            --tag-proof-bg: #e0f2fe;
+            --tag-proof-text: #0369a1;
+            --tag-approved-bg: #d1fae5;
+            --tag-approved-text: #065f46;
+            --tag-digital-bg: #f3e8ff;
+            --tag-digital-text: #7c3aed;
+            --tag-wide-bg: #fce7f3;
+            --tag-wide-text: #be185d;
+            --tag-outsource-bg: #fff7ed;
+            --tag-outsource-text: #c2410c;
+            --tag-design-bg: #e0f2fe;
+            --tag-design-text: #0284c7;
+            --shadow-card: 0 2px 12px rgba(42,62,119,0.07);
+            --shadow-sm: 0 1px 3px rgba(0,0,0,0.04);
+            --radius-lg: 20px;
+            --radius-md: 16px;
+            --radius-sm: 10px;
+            --radius-xs: 8px;
+            --font-sans: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
+        }
+        html.dark {
+            --bg-body: #0a0f1a;
+            --card-bg: #151e2c;
+            --text-primary: #f5f7fe;
+            --text-secondary: #e2e8ff;
+            --text-muted: #6b7fa0;
+            --border-light: #2a3348;
+            --border-input: #2a3348;
+            --btn-primary-bg: #5d7bdb;
+            --btn-primary-hover: #4a66c4;
+            --accent-blue: #7c9eff;
+            --kpi-icon-bg: #232b3f;
+            --table-header: #1a2335;
+            --table-hover: #1f2a40;
+            --tag-bg: #232b3f;
+            --tag-text: #7c9eff;
+            --tag-artwork-bg: #232b3f;
+            --tag-artwork-text: #7c9eff;
+            --tag-prepress-bg: #2a2418;
+            --tag-prepress-text: #fbbf24;
+            --tag-proof-bg: #172033;
+            --tag-proof-text: #60a5fa;
+            --tag-approved-bg: #143025;
+            --tag-approved-text: #34d399;
+            --tag-digital-bg: #24183a;
+            --tag-digital-text: #a78bfa;
+            --tag-wide-bg: #2a1828;
+            --tag-wide-text: #f472b6;
+            --tag-outsource-bg: #2a1f14;
+            --tag-outsource-text: #fb923c;
+            --tag-design-bg: #14203a;
+            --tag-design-text: #38bdf8;
+            --shadow-card: 0 2px 12px rgba(0,0,0,0.25);
+        }
+        body {
+            font-family: var(--font-sans);
+            background: var(--bg-body);
+            color: var(--text-primary);
+            height: 100vh;
+            width: 100vw;
+            overflow: hidden;
+            padding: 0;
+        }
+        .app {
+            height: 100%;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            padding: 14px 20px;
+        }
+        .page { display: none; flex: 1; flex-direction: column; overflow: hidden; min-height: 0; }
+        .page.active { display: flex; }
+        .page-scroll {
+            flex: 1;
+            overflow-y: auto;
+            min-height: 0;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-bottom: 14px;
+        }
+        .header-left h1 {
+            font-size: 1.4rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--accent-blue), #8b5cf6);
+            background-clip: text;
+            -webkit-background-clip: text;
+            color: transparent;
+        }
+        .header-left p { font-size: 0.68rem; color: var(--text-muted); margin-top: 2px; }
+        .header-right { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+        .user-badge {
+            background: var(--kpi-icon-bg);
+            padding: 5px 14px;
+            border-radius: 40px;
+            font-size: 0.7rem;
+            font-weight: 500;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            white-space: nowrap;
+        }
+        .user-badge input {
+            background: transparent;
+            border: 1px solid var(--border-input);
+            padding: 3px 8px;
+            border-radius: 6px;
+            font-size: 0.7rem;
+            color: var(--text-primary);
+            width: 120px;
+            font-family: inherit;
+        }
+        .user-badge input:focus { outline: none; border-color: var(--accent-blue); }
+        .greeting-badge { font-size: 0.7rem; font-weight: 600; color: var(--accent-blue); background: var(--kpi-icon-bg); padding: 4px 12px; border-radius: 20px; }
+        .dark-toggle {
+            background: var(--kpi-icon-bg); border: none; cursor: pointer; padding: 6px 12px;
+            border-radius: 40px; font-family: inherit; font-size: 0.75rem; font-weight: 600;
+            color: var(--text-primary); transition: 0.2s;
+        }
+        .dark-toggle:hover { opacity: 0.8; }
+        .save-indicator {
+            font-size: 0.65rem; color: var(--text-muted); background: var(--kpi-icon-bg);
+            padding: 4px 10px; border-radius: 20px; display: inline-flex; align-items: center;
+            gap: 4px; white-space: nowrap; max-width: 180px; overflow: hidden; text-overflow: ellipsis;
+        }
+        .save-indicator.unsaved { color: var(--btn-warning-bg); border: 1px solid var(--btn-warning-bg); }
+
+        .nav-tabs {
+            background: var(--card-bg); border-radius: var(--radius-md); padding: 0 4px;
+            display: flex; gap: 2px; flex-shrink: 0; margin-bottom: 14px; box-shadow: var(--shadow-card);
+            border: 1px solid var(--border-light);
+        }
+        .tab-btn {
+            padding: 10px 20px; font-size: 0.8rem; font-weight: 600; background: transparent;
+            border: none; color: var(--text-secondary); cursor: pointer; transition: 0.2s;
+            border-bottom: 2px solid transparent; font-family: inherit; border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+        }
+        .tab-btn:hover { color: var(--accent-blue); }
+        .tab-btn.active { color: var(--accent-blue); border-bottom-color: var(--accent-blue); background: var(--kpi-icon-bg); }
+        .card {
+            background: var(--card-bg); border-radius: var(--radius-md); padding: 18px 20px;
+            box-shadow: var(--shadow-card); border: 1px solid var(--border-light); margin-bottom: 14px;
+        }
+        .card-table { flex: 1; display: flex; flex-direction: column; min-height: 0; margin-bottom: 0; }
+        .card-table .table-wrap { flex: 1; min-height: 0; }
+
+        .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 10px; }
+        .field-group { display: flex; flex-direction: column; gap: 3px; }
+        .field-group label { font-size: 0.6rem; font-weight: 700; text-transform: uppercase; color: var(--text-muted); letter-spacing: 0.3px; }
+        .field-group input, .field-group textarea, .field-group select {
+            padding: 7px 10px; border-radius: var(--radius-xs); border: 1px solid var(--border-input);
+            background: var(--card-bg); color: var(--text-primary); font-size: 0.8rem; font-family: inherit;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        .field-group input:focus, .field-group textarea:focus, .field-group select:focus {
+            outline: none; border-color: var(--accent-blue); box-shadow: 0 0 0 3px rgba(46,91,255,0.12);
+        }
+        .field-group textarea { resize: vertical; min-height: 36px; }
+
+        .form-bottom { display: flex; gap: 12px; margin-top: 12px; align-items: flex-start; flex-wrap: wrap; }
+        .form-bottom .comments-area { flex: 1; min-width: 200px; }
+        .form-bottom .comments-area textarea { min-height: 56px; }
+        .form-bottom .actions-area { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; padding-top: 18px; }
+
+        .btn {
+            border: none; padding: 7px 16px; border-radius: 40px; font-weight: 600; font-size: 0.75rem;
+            cursor: pointer; transition: background 0.2s, transform 0.1s; display: inline-flex;
+            align-items: center; gap: 5px; font-family: inherit;
+        }
+        .btn:active { transform: scale(0.97); }
+        .btn-primary { background: var(--btn-primary-bg); color: white; }
+        .btn-primary:hover { background: var(--btn-primary-hover); transform: translateY(-1px); }
+        .btn-success { background: var(--btn-success-bg); color: white; }
+        .btn-success:hover { background: var(--btn-success-hover); transform: translateY(-1px); }
+        .btn-danger { background: var(--btn-danger-bg); color: white; }
+        .btn-danger:hover { background: var(--btn-danger-hover); transform: translateY(-1px); }
+        .btn-warning { background: var(--btn-warning-bg); color: white; }
+        .btn-warning:hover { background: var(--btn-warning-hover); }
+        .btn-secondary { background: var(--table-header); color: var(--text-primary); border: 1px solid var(--border-input); }
+        .btn-secondary:hover { background: var(--table-hover); }
+        .btn-import { background: var(--btn-import-bg); color: white; }
+        .btn-import:hover { background: var(--btn-import-hover); }
+        .btn-outline { background: transparent; color: var(--accent-blue); border: 2px solid var(--accent-blue); }
+        .btn-outline:hover { background: var(--kpi-icon-bg); }
+        .btn-sm { padding: 4px 10px; font-size: 0.68rem; }
+        .btn-xs { padding: 3px 8px; font-size: 0.62rem; border-radius: 30px; }
+
+        .save-btn-group { display: flex; gap: 2px; align-items: center; }
+        .save-btn-group .btn-save-main {
+            background: var(--btn-primary-bg); color: white; padding: 5px 14px; font-size: 0.7rem;
+            font-weight: 700; border-radius: 40px 0 0 40px; border: none; cursor: pointer;
+            font-family: inherit; transition: background 0.2s;
+        }
+        .save-btn-group .btn-save-main:hover { background: var(--btn-primary-hover); }
+        .save-btn-group .btn-save-as {
+            background: var(--btn-primary-bg); color: white; padding: 5px 10px; font-size: 0.7rem;
+            border-radius: 0 40px 40px 0; border: none; cursor: pointer;
+            border-left: 1px solid rgba(255,255,255,0.25); font-family: inherit; transition: background 0.2s;
+        }
+        .save-btn-group .btn-save-as:hover { background: var(--btn-primary-hover); }
+
+        .table-controls {
+            display: flex; justify-content: space-between; align-items: center; gap: 10px;
+            flex-wrap: wrap; margin-bottom: 10px;
+        }
+        .table-controls-left { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+        .table-controls-right { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+        .search-input {
+            padding: 6px 12px; border-radius: 40px; border: 1px solid var(--border-input);
+            background: var(--card-bg); color: var(--text-primary); font-size: 0.75rem; min-width: 160px;
+            font-family: inherit;
+        }
+        .search-input:focus { outline: none; border-color: var(--accent-blue); }
+
+        .filter-buttons { display: flex; gap: 3px; align-items: center; }
+        .filter-buttons button {
+            background: var(--table-header); color: var(--text-secondary); border: 1px solid var(--border-input);
+            font-size: 0.65rem; font-weight: 600; padding: 4px 12px; border-radius: 30px; cursor: pointer;
+            transition: 0.2s; font-family: inherit;
+        }
+        .filter-buttons button:hover { background: var(--table-hover); }
+        .filter-buttons button.active-filter { background: var(--btn-primary-bg); color: white; border-color: var(--btn-primary-bg); }
+
+        .table-wrap { overflow: auto; -webkit-overflow-scrolling: touch; border-radius: var(--radius-sm); border: 1px solid var(--border-light); }
+        .data-table { width: 100%; border-collapse: collapse; font-size: 0.7rem; min-width: 600px; }
+        .data-table th {
+            text-align: left; padding: 9px 12px; background: var(--table-header); color: var(--text-primary);
+            font-weight: 600; position: sticky; top: 0; border-bottom: 1px solid var(--border-light);
+            white-space: nowrap; cursor: pointer; user-select: none; transition: background 0.1s;
+            font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.3px;
+        }
+        .data-table th:hover { background: var(--table-hover); }
+        .data-table th .sort-icon { margin-left: 3px; opacity: 0.4; font-size: 0.6rem; }
+        .data-table th.sorted .sort-icon { opacity: 1; color: var(--accent-blue); }
+        .data-table td {
+            padding: 8px 12px; border-bottom: 1px solid var(--border-light); color: var(--text-secondary);
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis; height: 36px;
+        }
+        .data-table tbody tr { transition: background 0.1s; }
+        .data-table tbody tr:hover { background: var(--table-hover); }
+        .data-table .empty-row { text-align: center; padding: 20px; color: var(--text-muted); font-style: italic; }
+        .data-table th:first-child, .data-table td:first-child { width: 36px; text-align: center; padding: 8px 6px; }
+
+        .tag { display: inline-block; padding: 2px 8px; border-radius: 12px; font-size: 0.62rem; font-weight: 600; letter-spacing: 0.2px; }
+        .tag-ARTWORK { background: var(--tag-artwork-bg); color: var(--tag-artwork-text); }
+        .tag-PREPRESS { background: var(--tag-prepress-bg); color: var(--tag-prepress-text); }
+        .tag-PROOF { background: var(--tag-proof-bg); color: var(--tag-proof-text); }
+        .tag-APPROVED { background: var(--tag-approved-bg); color: var(--tag-approved-text); }
+        .tag-DIGITAL { background: var(--tag-digital-bg); color: var(--tag-digital-text); }
+        .tag-WIDE_FORMAT { background: var(--tag-wide-bg); color: var(--tag-wide-text); }
+        .tag-OUTSOURCE { background: var(--tag-outsource-bg); color: var(--tag-outsource-text); }
+        .tag-DESIGN { background: var(--tag-design-bg); color: var(--tag-design-text); }
+
+        .batch-bar {
+            display: flex; align-items: center; gap: 8px; padding: 7px 14px;
+            background: var(--kpi-icon-bg); border: 1px solid var(--border-light);
+            border-radius: var(--radius-sm); margin-bottom: 10px; font-size: 0.75rem; flex-wrap: wrap;
+        }
+        .batch-bar select { padding: 3px 8px; border-radius: 6px; border: 1px solid var(--border-input); background: var(--card-bg); color: var(--text-primary); font-size: 0.7rem; }
+
+        .inline-edit input, .inline-edit select, .inline-edit textarea {
+            padding: 3px 5px; font-size: 0.75rem; width: 100%; box-sizing: border-box;
+            border: 1px solid var(--accent-blue); border-radius: 4px; background: var(--card-bg); color: var(--text-primary);
+        }
+        tr.editing { background: var(--kpi-icon-bg) !important; }
+
+        .toast {
+            position: fixed; bottom: 24px; right: 24px; background: var(--btn-primary-bg); color: white;
+            padding: 10px 20px; border-radius: var(--radius-sm); font-size: 0.8rem; opacity: 0;
+            transform: translateY(20px); transition: opacity 0.3s, transform 0.3s; pointer-events: none;
+            z-index: 999; box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+        }
+        .toast.show { opacity: 1; transform: translateY(0); pointer-events: auto; }
+        .toast.error { background: var(--btn-danger-bg); }
+        .toast .undo-link { color: white; text-decoration: underline; cursor: pointer; margin-left: 8px; font-weight: 600; }
+
+        ::-webkit-scrollbar { width: 5px; height: 5px; }
+        ::-webkit-scrollbar-track { background: var(--border-light); border-radius: 4px; }
+        ::-webkit-scrollbar-thumb { background: var(--text-muted); border-radius: 4px; }
+
+        @media (max-width: 1100px) {
+            .table-controls { flex-direction: column; align-items: stretch; }
+            .table-controls-left, .table-controls-right { justify-content: flex-start; }
+        }
+        @media (max-width: 700px) {
+            .app { padding: 10px 12px; }
+            .header { flex-direction: column; align-items: flex-start; }
+            .header-right { width: 100%; justify-content: flex-start; }
+            .form-grid { grid-template-columns: 1fr 1fr; }
+        }
+    </style>
+</head>
+<body>
+<div class="app">
+    <div class="header">
+        <div class="header-left">
+            <h1>Work Ticket Hub</h1>
+        </div>
+        <div class="header-right">
+            <div class="user-badge">
+                <input type="text" id="userNameInput" placeholder="Your name..." maxlength="50">
+                <button class="btn btn-xs btn-primary" id="saveUserNameBtn">Save</button>
+                <button class="btn btn-xs btn-danger" id="clearUserNameBtn" style="display:none;">Clear</button>
+                <span class="greeting-badge" id="greeting" style="display:none;"></span>
+            </div>
+            <span class="save-indicator" id="saveIndicator" style="display:none;"></span>
+            <button id="darkModeToggle" class="dark-toggle">Dark</button>
+        </div>
+    </div>
+
+    <div class="nav-tabs">
+        <button class="tab-btn active" data-tab="dashboard">Ticket Dashboard</button>
+        <button class="tab-btn" data-tab="explorer">Data Explorer</button>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <!-- DASHBOARD TAB -->
+    <div class="page active" id="dashboardPage">
+        <div class="page-scroll">
+        <div class="card">
+            <form id="ticketForm">
+                <input type="hidden" id="editingId" value="">
+                <div class="form-grid">
+                    <div class="field-group"><label>Ticket #</label><input type="text" id="ticket" required placeholder="e.g. TK-1001"></div>
+                    <div class="field-group"><label>Date</label><input type="date" id="date" required></div>
+                    <div class="field-group"><label>Time In</label><input type="time" id="timeIn"></div>
+                    <div class="field-group"><label>Time Out</label><input type="time" id="timeOut"></div>
+                    <div class="field-group"><label>Customer</label><input type="text" id="customer" required placeholder="Customer name"></div>
+                    <div class="field-group"><label>Job Name</label><input type="text" id="jobName" required placeholder="Job description"></div>
+                    <div class="field-group">
+                        <label>Tag</label>
+                        <select id="tagSelect">
+                            <option value="">-- Select a tag --</option>
+                            <option value="ARTWORK">ARTWORK</option>
+                            <option value="PREPRESS">PREPRESS</option>
+                            <option value="PROOF">PROOF</option>
+                            <option value="APPROVED">APPROVED</option>
+                            <option value="DIGITAL">DIGITAL</option>
+                            <option value="WIDE FORMAT">WIDE FORMAT</option>
+                            <option value="OUTSOURCE">OUTSOURCE</option>
+                            <option value="DESIGN">DESIGN</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-bottom">
+                    <div class="comments-area field-group"><label>Comments</label><textarea id="comments" placeholder="Additional notes..."></textarea></div>
+                    <div class="actions-area">
+                        <button type="submit" class="btn btn-primary" id="submitBtn">+ Add Ticket</button>
+                        <button type="button" class="btn btn-secondary" id="cancelEditBtn" style="display:none;">Cancel Edit</button>
+                        <button type="reset" class="btn btn-secondary">Clear Form</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+        <div class="card card-table">
+            <div class="table-controls">
+                <div class="table-controls-left">
+                    <input type="text" class="search-input" id="search" placeholder="Search tickets...">
+                    <div class="filter-buttons" id="periodFilters">
+                        <button data-period="all">All</button>
+                        <button data-period="day" class="active-filter">Day</button>
+                        <button data-period="week">Week</button>
+                        <button data-period="month">Month</button>
+                    </div>
+                </div>
+                <div class="table-controls-right">
+                    <div class="save-btn-group">
+                        <button class="btn-save-main" id="saveExcelBtn">Save Excel</button>
+                        <button class="btn-save-as" id="saveAsExcelBtn">📂</button>
+                    </div>
+                    <button class="btn btn-outline btn-sm" id="quickExportBtn">Quick Export</button>
+                    <button class="btn btn-import btn-sm" id="importExcelBtn">Import Excel</button>
+                    <button class="btn btn-danger btn-sm" onclick="clearAll()">Clear All</button>
+                    <input type="file" id="importFileInput" accept=".xlsx" style="display:none;">
+                </div>
+            </div>
+            <div id="batchBar" class="batch-bar" style="display:none;">
+                <span id="batchCount">0 selected</span>
+                <button class="btn btn-danger btn-xs" id="batchDeleteBtn">Delete</button>
+                <button class="btn btn-success btn-xs" id="batchExportBtn">Export</button>
+                <label style="font-size:0.65rem; font-weight:600; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.3px;">Set Tag:</label>
+                <select id="batchTagSelect">
+                    <option value="">--</option>
+                    <option value="ARTWORK">ARTWORK</option>
+                    <option value="PREPRESS">PREPRESS</option>
+                    <option value="PROOF">PROOF</option>
+                    <option value="APPROVED">APPROVED</option>
+                    <option value="DIGITAL">DIGITAL</option>
+                    <option value="WIDE FORMAT">WIDE FORMAT</option>
+                    <option value="OUTSOURCE">OUTSOURCE</option>
+                    <option value="DESIGN">DESIGN</option>
+                </select>
+                <button class="btn btn-primary btn-xs" id="batchApplyTagBtn">Apply</button>
+            </div>
+            <div class="table-wrap">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th><input type="checkbox" id="selectAll" title="Select all" style="accent-color:var(--accent-blue);"></th>
+                            <th data-sort="ticket">Ticket <span class="sort-icon">⇅</span></th>
+                            <th data-sort="date" class="sorted">Date <span class="sort-icon">⇅</span></th>
+                            <th>Time In</th>
+                            <th>Time Out</th>
+                            <th data-sort="customer">Customer <span class="sort-icon">⇅</span></th>
+                            <th data-sort="jobName">Job Name <span class="sort-icon">⇅</span></th>
+                            <th>Tag</th>
+                            <th>Comments</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="ticketTable"></tbody>
+                </table>
+            </div>
+        </div>
+        </div>
+    </div>
+
+    <!-- EXPLORER TAB -->
+    <div class="page" id="explorerPage">
+        <div class="page-scroll">
+        <div class="card">
+            <div style="display:flex; gap:12px; align-items:center; flex-wrap:wrap;">
+                <button class="btn btn-primary" id="pickFolderBtn">Select Folder</button>
+                <button class="btn btn-secondary" id="refreshBtn">Refresh</button>
+                <span id="folderName" style="font-size:0.75rem; color:var(--text-secondary);"></span>
+            </div>
+            <p style="margin-top:8px; font-size:0.7rem; color:var(--text-muted);">Select the folder where your Excel ticket files are stored. All .xlsx files will be merged.</p>
+        </div>
+        <div class="card">
+            <div class="table-controls">
+                <div class="table-controls-left">
+                    <input type="text" class="search-input" id="explorerSearch" placeholder="Search tickets...">
+                    <div class="filter-buttons" id="explorerPeriodFilters">
+                        <button data-period="all">All</button>
+                        <button data-period="day" class="active-filter">Day</button>
+                        <button data-period="week">Week</button>
+                        <button data-period="month">Month</button>
+                    </div>
+                    <select id="explorerTagFilter" style="padding:5px 10px; border-radius:30px; border:1px solid var(--border-input); background:var(--card-bg); color:var(--text-primary); font-size:0.7rem; font-family:inherit;">
+                        <option value="">All Tags</option>
+                        <option value="ARTWORK">ARTWORK</option>
+                        <option value="PREPRESS">PREPRESS</option>
+                        <option value="PROOF">PROOF</option>
+                        <option value="APPROVED">APPROVED</option>
+                        <option value="DIGITAL">DIGITAL</option>
+                        <option value="WIDE FORMAT">WIDE FORMAT</option>
+                        <option value="OUTSOURCE">OUTSOURCE</option>
+                        <option value="DESIGN">DESIGN</option>
+                    </select>
+                </div>
+                <div class="table-controls-right">
+                    <button class="btn btn-success" id="exportExplorerBtn">Export Excel</button>
+                </div>
+            </div>
+            <div class="table-wrap">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th data-sort="ticket" class="sorted">Ticket <span class="sort-icon">⇅</span></th>
+                            <th data-sort="date">Date <span class="sort-icon">⇅</span></th>
+                            <th>Time In</th>
+                            <th>Time Out</th>
+                            <th data-sort="customer">Customer <span class="sort-icon">⇅</span></th>
+                            <th data-sort="jobName">Job Name <span class="sort-icon">⇅</span></th>
+                            <th>Tag</th>
+                            <th>Comments</th>
+                        </tr>
+                    </thead>
+                    <tbody id="explorerTable"></tbody>
+                </table>
+            </div>
+        </div>
+        </div>
+    </div>
+</div>
+
+<script>
+(function() {
+    const STORAGE_TICKETS = 'tickets';
+    const STORAGE_USER = 'dashboardUserName';
+    const STORAGE_DARK_MODE = 'dashboardDarkMode';
+    const IDB_NAME = 'WorkTicketDashboard';
+    const IDB_STORE_FILE = 'fileHandles';
+    const IDB_STORE_DIR = 'dirHandles';
+    const IDB_KEY_FILE = 'excelFileHandle';
+    const IDB_KEY_DIR = 'reportDirHandle';
+
+    const ACTIVE_TAGS = ['ARTWORK','DESIGN','PROOF','APPROVED'];
+    const EXIT_TAGS = ['DIGITAL','WIDE FORMAT','OUTSOURCE'];
+
+    let tickets = JSON.parse(localStorage.getItem(STORAGE_TICKETS) || '[]');
+    let currentUser = localStorage.getItem(STORAGE_USER) || '';
+    let dashboardSortKey = 'date';
+    let dashboardSortAsc = false;
+    let dashboardPeriod = 'day';
+    let excelFileHandle = null;
+    let supportsFSA = ('showSaveFilePicker' in window);
+    let selectedTickets = new Set();
+    let lastDeletedTickets = [];
+    let inlineEditingId = null;
+
+    let allExplorerTickets = [];
+    let explorerSortKey = 'ticket';
+    let explorerSortAsc = true;
+    let explorerPeriod = 'day';
+    let directoryHandle = null;
+
+    const toastEl = document.getElementById('toast');
+    const userNameInput = document.getElementById('userNameInput');
+    const saveUserNameBtn = document.getElementById('saveUserNameBtn');
+    const clearUserNameBtn = document.getElementById('clearUserNameBtn');
+    const greetingEl = document.getElementById('greeting');
+    const saveIndicator = document.getElementById('saveIndicator');
+    const darkToggle = document.getElementById('darkModeToggle');
+
+    const form = document.getElementById('ticketForm');
+    const ticketTable = document.getElementById('ticketTable');
+    const searchBox = document.getElementById('search');
+    const editingId = document.getElementById('editingId');
+    const submitBtn = document.getElementById('submitBtn');
+    const cancelEditBtn = document.getElementById('cancelEditBtn');
+    const tagSelect = document.getElementById('tagSelect');
+    const timeInInput = document.getElementById('timeIn');
+    const timeOutInput = document.getElementById('timeOut');
+    const dashboardPeriodBtns = document.querySelectorAll('#periodFilters button');
+    const saveExcelBtn = document.getElementById('saveExcelBtn');
+    const saveAsExcelBtn = document.getElementById('saveAsExcelBtn');
+    const quickExportBtn = document.getElementById('quickExportBtn');
+    const importExcelBtn = document.getElementById('importExcelBtn');
+    const importFileInput = document.getElementById('importFileInput');
+    const selectAllCheckbox = document.getElementById('selectAll');
+    const batchBar = document.getElementById('batchBar');
+    const batchCount = document.getElementById('batchCount');
+    const batchDeleteBtn = document.getElementById('batchDeleteBtn');
+    const batchExportBtn = document.getElementById('batchExportBtn');
+    const batchTagSelect = document.getElementById('batchTagSelect');
+    const batchApplyTagBtn = document.getElementById('batchApplyTagBtn');
+
+    const explorerTable = document.getElementById('explorerTable');
+    const explorerSearch = document.getElementById('explorerSearch');
+    const explorerPeriodBtns = document.querySelectorAll('#explorerPeriodFilters button');
+    const explorerTagFilter = document.getElementById('explorerTagFilter');
+    const pickFolderBtn = document.getElementById('pickFolderBtn');
+    const refreshBtn = document.getElementById('refreshBtn');
+    const folderNameSpan = document.getElementById('folderName');
+    const exportExplorerBtn = document.getElementById('exportExplorerBtn');
+
+    // Dark mode persistence
+    function applyDarkMode(isDark) {
+        if (isDark) {
+            document.documentElement.classList.add('dark');
+            darkToggle.textContent = 'Light';
+        } else {
+            document.documentElement.classList.remove('dark');
+            darkToggle.textContent = 'Dark';
+        }
+    }
+    const savedDark = localStorage.getItem(STORAGE_DARK_MODE);
+    applyDarkMode(savedDark === 'true');
+    darkToggle.addEventListener('click', () => {
+        const nowDark = !document.documentElement.classList.contains('dark');
+        applyDarkMode(nowDark);
+        localStorage.setItem(STORAGE_DARK_MODE, nowDark ? 'true' : 'false');
+    });
+
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            btn.classList.add('active');
+            document.getElementById(btn.dataset.tab === 'dashboard' ? 'dashboardPage' : 'explorerPage').classList.add('active');
+        });
+    });
+
+    function openIDB() {
+        return new Promise((resolve, reject) => {
+            const request = indexedDB.open(IDB_NAME, 2);
+            request.onupgradeneeded = (e) => {
+                const db = e.target.result;
+                if (!db.objectStoreNames.contains(IDB_STORE_FILE)) db.createObjectStore(IDB_STORE_FILE);
+                if (!db.objectStoreNames.contains(IDB_STORE_DIR)) db.createObjectStore(IDB_STORE_DIR);
+            };
+            request.onsuccess = () => resolve(request.result);
+            request.onerror = () => reject(request.error);
+        });
+    }
+    async function storeFileHandle(handle) {
+        try {
+            const db = await openIDB();
+            const tx = db.transaction(IDB_STORE_FILE, 'readwrite');
+            tx.objectStore(IDB_STORE_FILE).put(handle, IDB_KEY_FILE);
+            await new Promise((resolve, reject) => { tx.oncomplete = resolve; tx.onerror = () => reject(tx.error); });
+            db.close();
+        } catch (err) {}
+    }
+    async function loadStoredFileHandle() {
+        try {
+            const db = await openIDB();
+            const tx = db.transaction(IDB_STORE_FILE, 'readonly');
+            const result = await new Promise((resolve, reject) => {
+                const req = tx.objectStore(IDB_STORE_FILE).get(IDB_KEY_FILE);
+                req.onsuccess = () => resolve(req.result);
+                req.onerror = () => reject(req.error);
+            });
+            db.close();
+            if (result && typeof result.createWritable === 'function') {
+                const perm = await result.queryPermission({ mode: 'readwrite' });
+                if (perm === 'granted') return result;
+                if (perm === 'prompt' && (await result.requestPermission({ mode: 'readwrite' })) === 'granted') return result;
+            }
+            return null;
+        } catch (err) { return null; }
+    }
+    async function clearStoredFileHandle() {
+        try {
+            const db = await openIDB();
+            const tx = db.transaction(IDB_STORE_FILE, 'readwrite');
+            tx.objectStore(IDB_STORE_FILE).delete(IDB_KEY_FILE);
+            await new Promise((resolve, reject) => { tx.oncomplete = resolve; tx.onerror = () => reject(tx.error); });
+            db.close();
+        } catch (err) {}
+    }
+    async function storeDirHandle(handle) {
+        try {
+            const db = await openIDB();
+            const tx = db.transaction(IDB_STORE_DIR, 'readwrite');
+            tx.objectStore(IDB_STORE_DIR).put(handle, IDB_KEY_DIR);
+            await new Promise((resolve, reject) => { tx.oncomplete = resolve; tx.onerror = () => reject(tx.error); });
+            db.close();
+        } catch (err) {}
+    }
+    async function loadStoredDirHandle() {
+        try {
+            const db = await openIDB();
+            const tx = db.transaction(IDB_STORE_DIR, 'readonly');
+            const result = await new Promise((resolve, reject) => {
+                const req = tx.objectStore(IDB_STORE_DIR).get(IDB_KEY_DIR);
+                req.onsuccess = () => resolve(req.result);
+                req.onerror = () => reject(req.error);
+            });
+            db.close();
+            if (result && typeof result.values === 'function') {
+                const perm = await result.queryPermission({ mode: 'read' });
+                if (perm === 'granted') return result;
+                if (perm === 'prompt' && (await result.requestPermission({ mode: 'read' })) === 'granted') return result;
+            }
+            return null;
+        } catch (err) { return null; }
+    }
+    async function clearStoredDirHandle() {
+        try {
+            const db = await openIDB();
+            const tx = db.transaction(IDB_STORE_DIR, 'readwrite');
+            tx.objectStore(IDB_STORE_DIR).delete(IDB_KEY_DIR);
+            await new Promise((resolve, reject) => { tx.oncomplete = resolve; tx.onerror = () => reject(tx.error); });
+            db.close();
+        } catch (err) {}
+    }
+
+    function getStartOfDay(d) { return new Date(d.getFullYear(), d.getMonth(), d.getDate()); }
+    function getStartOfWeek(d) {
+        const date = new Date(d);
+        const day = date.getDay();
+        const diff = date.getDate() - day + (day === 0 ? -6 : 1);
+        return new Date(date.getFullYear(), date.getMonth(), diff);
+    }
+    function getStartOfMonth(d) { return new Date(d.getFullYear(), d.getMonth(), 1); }
+    function isWithinPeriod(ticket, period) {
+        if (period === 'all') return true;
+        const ticketDate = new Date(ticket.date + 'T00:00:00');
+        const today = new Date();
+        const startToday = getStartOfDay(today);
+        const tomorrow = new Date(startToday); tomorrow.setDate(tomorrow.getDate() + 1);
+        switch (period) {
+            case 'day': return (ticketDate >= startToday && ticketDate < tomorrow) || (ACTIVE_TAGS.includes(ticket.tag) && ticketDate <= today);
+            case 'week': { const sw = getStartOfWeek(today); const nw = new Date(sw); nw.setDate(nw.getDate()+7); return ticketDate >= sw && ticketDate < nw; }
+            case 'month': { const sm = getStartOfMonth(today); const nm = new Date(sm); nm.setMonth(nm.getMonth()+1); return ticketDate >= sm && ticketDate < nm; }
+            default: return true;
+        }
+    }
+    function getCurrentTimeString() { return new Date().toTimeString().slice(0,5); }
+    function escapeHtml(str) { const div = document.createElement('div'); div.textContent = str || ''; return div.innerHTML; }
+
+    let toastTimer;
+    function showToast(msg, isError = false, undoCallback = null) {
+        clearTimeout(toastTimer);
+        if (undoCallback) toastEl.innerHTML = `${msg} <span class="undo-link" id="undoToastLink">Undo</span>`;
+        else toastEl.textContent = msg;
+        toastEl.className = 'toast ' + (isError ? 'error' : '');
+        void toastEl.offsetWidth; toastEl.classList.add('show');
+        if (undoCallback) {
+            document.getElementById('undoToastLink').addEventListener('click', (e) => {
+                e.stopPropagation(); undoCallback(); toastEl.classList.remove('show'); clearTimeout(toastTimer);
+            });
+        }
+        toastTimer = setTimeout(() => { toastEl.classList.remove('show'); if (undoCallback) lastDeletedTickets = []; }, 5000);
+    }
+
+    function tagHtml(tag) {
+        if (!tag) return '';
+        const cls = 'tag tag-' + tag.replace(/ /g, '_');
+        return `<span class="${cls}">${escapeHtml(tag)}</span>`;
+    }
+
+    function updateSaveIndicator() {
+        if (!currentUser) { saveIndicator.style.display = 'none'; return; }
+        saveIndicator.style.display = 'inline-flex';
+        if (excelFileHandle && supportsFSA) { saveIndicator.textContent = `Save: ${excelFileHandle.name || 'file'}`; saveIndicator.className = 'save-indicator'; }
+        else if (supportsFSA) { saveIndicator.textContent = 'No save location'; saveIndicator.className = 'save-indicator unsaved'; }
+        else { saveIndicator.textContent = 'Download mode'; saveIndicator.className = 'save-indicator'; }
+    }
+    async function initFileHandle() {
+        if (supportsFSA && currentUser) excelFileHandle = await loadStoredFileHandle();
+        else excelFileHandle = null;
+        updateSaveIndicator();
+    }
+    function updateUserDisplay() {
+        if (currentUser) {
+            greetingEl.textContent = `Hello, ${currentUser}`; greetingEl.style.display = 'inline-block';
+            userNameInput.value = currentUser; clearUserNameBtn.style.display = 'inline-block';
+        } else {
+            greetingEl.style.display = 'none'; userNameInput.value = ''; clearUserNameBtn.style.display = 'none';
+        }
+        updateSaveIndicator();
+    }
+    saveUserNameBtn.addEventListener('click', () => {
+        const name = userNameInput.value.trim();
+        if (!name) { showToast('Please enter a name.', true); return; }
+        if (currentUser && name !== currentUser) { performFullReset(name); return; }
+        if (!currentUser) {
+            currentUser = name; localStorage.setItem(STORAGE_USER, currentUser);
+            updateUserDisplay(); initFileHandle(); showToast(`Name saved as "${currentUser}"`);
+        }
+    });
+    clearUserNameBtn.addEventListener('click', () => {
+        if (!confirm('Clear your name? This will delete ALL dashboard tickets.')) return;
+        performFullReset(''); showToast('Name cleared — all data wiped.');
+    });
+    async function performFullReset(newName) {
+        tickets = []; localStorage.setItem(STORAGE_TICKETS, JSON.stringify(tickets));
+        currentUser = newName;
+        if (newName) localStorage.setItem(STORAGE_USER, currentUser);
+        else localStorage.removeItem(STORAGE_USER);
+        excelFileHandle = null; await clearStoredFileHandle();
+        editingId.value = ''; submitBtn.textContent = '+ Add Ticket'; submitBtn.className = 'btn btn-primary';
+        cancelEditBtn.style.display = 'none'; form.reset(); resetDashboardForm();
+        selectedTickets.clear(); inlineEditingId = null;
+        updateUserDisplay(); updateSaveIndicator(); renderDashboard();
+    }
+    updateUserDisplay(); initFileHandle();
+
+    function resetDashboardForm() {
+        document.getElementById('date').valueAsDate = new Date();
+        timeInInput.value = ''; timeOutInput.value = '';
+    }
+    tagSelect.addEventListener('change', () => {
+        if (EXIT_TAGS.includes(tagSelect.value) && !timeOutInput.value) timeOutInput.value = getCurrentTimeString();
+    });
+    resetDashboardForm();
+
+    form.addEventListener('submit', e => {
+        e.preventDefault();
+        const ticketVal = document.getElementById('ticket').value.trim();
+        const dateVal = document.getElementById('date').value;
+        let timeInVal = timeInInput.value || getCurrentTimeString();
+        let timeOutVal = timeOutInput.value;
+        const editId = editingId.value;
+        if (!editId && EXIT_TAGS.includes(tagSelect.value) && !timeOutVal) timeOutVal = getCurrentTimeString();
+        const customerVal = document.getElementById('customer').value.trim();
+        const jobNameVal = document.getElementById('jobName').value.trim();
+        const tagVal = tagSelect.value;
+        const commentsVal = document.getElementById('comments').value.trim();
+
+        if (tickets.find(t => t.ticket.toLowerCase() === ticketVal.toLowerCase() && String(t.id) !== editId)) {
+            showToast(`Ticket "${ticketVal}" already exists!`, true); return;
+        }
+
+        if (editId) {
+            const idx = tickets.findIndex(t => String(t.id) === editId);
+            if (idx !== -1) Object.assign(tickets[idx], { ticket: ticketVal, date: dateVal, timeIn: timeInVal, timeOut: timeOutVal, customer: customerVal, jobName: jobNameVal, tag: tagVal, comments: commentsVal });
+            editingId.value = ''; submitBtn.textContent = '+ Add Ticket'; submitBtn.className = 'btn btn-primary'; cancelEditBtn.style.display = 'none';
+        } else {
+            tickets.unshift({ id: Date.now(), ticket: ticketVal, date: dateVal, timeIn: timeInVal, timeOut: timeOutVal, customer: customerVal, jobName: jobNameVal, tag: tagVal, comments: commentsVal });
+        }
+        saveDashboardAndRender(); form.reset(); resetDashboardForm();
+    });
+    cancelEditBtn.addEventListener('click', () => {
+        editingId.value = ''; submitBtn.textContent = '+ Add Ticket'; submitBtn.className = 'btn btn-primary';
+        cancelEditBtn.style.display = 'none'; form.reset(); resetDashboardForm();
+    });
+    form.addEventListener('reset', () => setTimeout(resetDashboardForm, 0));
+    searchBox.addEventListener('input', renderDashboard);
+
+    function saveDashboardAndRender() { localStorage.setItem(STORAGE_TICKETS, JSON.stringify(tickets)); renderDashboard(); }
+    function sortTickets(filtered, key, asc) {
+        return [...filtered].sort((a, b) => {
+            let va = (a[key] || '').toString().toLowerCase();
+            let vb = (b[key] || '').toString().toLowerCase();
+            if (key === 'date') { va = a.date || ''; vb = b.date || ''; }
+            if (va < vb) return asc ? -1 : 1;
+            if (va > vb) return asc ? 1 : -1;
+            return 0;
+        });
+    }
+    function renderDashboard() {
+        const query = searchBox.value.toLowerCase();
+        let filtered = tickets.filter(t => {
+            if (!isWithinPeriod(t, dashboardPeriod)) return false;
+            return [t.ticket, t.date, t.timeIn||'', t.timeOut||'', t.customer, t.jobName, t.tag, t.comments].join(' ').toLowerCase().includes(query);
+        });
+        const sorted = sortTickets(filtered, dashboardSortKey, dashboardSortAsc);
+        if (sorted.length === 0) { ticketTable.innerHTML = `<tr><td colspan="10" class="empty-row">No tickets found.</td></tr>`; updateBatchBar(); return; }
+        ticketTable.innerHTML = sorted.map(t => {
+            const tagH = t.tag ? tagHtml(t.tag) : '';
+            const checked = selectedTickets.has(t.id) ? 'checked' : '';
+            return `<tr data-id="${t.id}">
+                <td><input type="checkbox" class="row-checkbox" data-id="${t.id}" ${checked} style="accent-color:var(--accent-blue);"></td>
+                <td><strong>${escapeHtml(t.ticket)}</strong></td><td>${t.date}</td>
+                <td>${t.timeIn||'—'}</td><td>${t.timeOut||'—'}</td>
+                <td>${escapeHtml(t.customer)}</td><td>${escapeHtml(t.jobName)}</td>
+                <td>${tagH}</td><td>${escapeHtml(t.comments)}</td>
+                <td><button class="btn btn-warning btn-xs" data-edit="${t.id}">Edit</button></td>
+            </tr>`;
+        }).join('');
+        ticketTable.querySelectorAll('[data-edit]').forEach(btn => btn.addEventListener('click', () => editDashboardTicket(Number(btn.dataset.edit))));
+        attachCheckboxListeners(); applyCheckboxStates(); updateBatchBar();
+        document.querySelectorAll('#dashboardPage th[data-sort]').forEach(th => { th.classList.toggle('sorted', th.dataset.sort === dashboardSortKey); });
+    }
+    function editDashboardTicket(id) {
+        const t = tickets.find(t => t.id === id); if (!t) return;
+        document.getElementById('ticket').value = t.ticket; document.getElementById('date').value = t.date;
+        timeInInput.value = t.timeIn||''; timeOutInput.value = t.timeOut||'';
+        document.getElementById('customer').value = t.customer; document.getElementById('jobName').value = t.jobName;
+        tagSelect.value = t.tag||''; document.getElementById('comments').value = t.comments;
+        editingId.value = String(id); submitBtn.textContent = 'Update Ticket'; submitBtn.className = 'btn btn-warning';
+        cancelEditBtn.style.display = 'inline-block'; document.getElementById('ticket').focus();
+    }
+
+    function updateBatchBar() { batchBar.style.display = selectedTickets.size > 0 ? 'flex' : 'none'; batchCount.textContent = `${selectedTickets.size} selected`; }
+    selectAllCheckbox.addEventListener('change', () => {
+        document.querySelectorAll('.row-checkbox').forEach(cb => {
+            cb.checked = selectAllCheckbox.checked;
+            const id = Number(cb.dataset.id);
+            if (selectAllCheckbox.checked) selectedTickets.add(id); else selectedTickets.delete(id);
+        });
+        updateBatchBar();
+    });
+    function attachCheckboxListeners() {
+        document.querySelectorAll('.row-checkbox').forEach(cb => {
+            cb.addEventListener('change', (e) => {
+                const id = Number(e.target.dataset.id);
+                if (e.target.checked) selectedTickets.add(id); else selectedTickets.delete(id);
+                updateBatchBar();
+                selectAllCheckbox.checked = selectedTickets.size === document.querySelectorAll('.row-checkbox').length;
+            });
+        });
+    }
+    function applyCheckboxStates() {
+        document.querySelectorAll('.row-checkbox').forEach(cb => { cb.checked = selectedTickets.has(Number(cb.dataset.id)); });
+        selectAllCheckbox.checked = selectedTickets.size > 0 && selectedTickets.size === document.querySelectorAll('.row-checkbox').length;
+        updateBatchBar();
+    }
+    batchDeleteBtn.addEventListener('click', () => {
+        if (selectedTickets.size === 0) return;
+        if (!confirm(`Delete ${selectedTickets.size} selected ticket(s)?`)) return;
+        const toDelete = tickets.filter(t => selectedTickets.has(t.id));
+        tickets = tickets.filter(t => !selectedTickets.has(t.id));
+        localStorage.setItem(STORAGE_TICKETS, JSON.stringify(tickets));
+        storeDeletedForUndo(toDelete); selectedTickets.clear(); renderDashboard();
+    });
+    batchExportBtn.addEventListener('click', () => {
+        if (selectedTickets.size === 0) { showToast('No tickets selected.', true); return; }
+        exportTicketArray(tickets.filter(t => selectedTickets.has(t.id)), `${currentUser || 'dashboard'}_selected`);
+        showToast('Exported selected tickets.');
+    });
+    batchApplyTagBtn.addEventListener('click', () => {
+        const tag = batchTagSelect.value;
+        if (!tag || selectedTickets.size === 0) return;
+        tickets.forEach(t => { if (selectedTickets.has(t.id)) t.tag = tag; });
+        localStorage.setItem(STORAGE_TICKETS, JSON.stringify(tickets)); renderDashboard();
+    });
+    function storeDeletedForUndo(arr) {
+        lastDeletedTickets = arr;
+        const msg = arr.length === 1 ? 'Ticket deleted.' : `${arr.length} tickets deleted.`;
+        showToast(msg, false, () => {
+            tickets.push(...lastDeletedTickets); lastDeletedTickets = [];
+            localStorage.setItem(STORAGE_TICKETS, JSON.stringify(tickets)); renderDashboard();
+        });
+    }
+    dashboardPeriodBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            dashboardPeriodBtns.forEach(b => b.classList.remove('active-filter'));
+            btn.classList.add('active-filter'); dashboardPeriod = btn.dataset.period; renderDashboard();
+        });
+    });
+    document.querySelectorAll('#dashboardPage th[data-sort]').forEach(th => {
+        th.addEventListener('click', () => {
+            const key = th.dataset.sort;
+            if (dashboardSortKey === key) dashboardSortAsc = !dashboardSortAsc;
+            else { dashboardSortKey = key; dashboardSortAsc = true; }
+            renderDashboard();
+        });
+    });
+
+    // Inline editing
+    ticketTable.addEventListener('dblclick', (e) => {
+        const row = e.target.closest('tr');
+        if (!row || row.classList.contains('editing')) return;
+        const id = Number(row.dataset.id); if (!id) return;
+        startInlineEdit(id);
+    });
+    function startInlineEdit(id) {
+        if (inlineEditingId !== null) cancelInlineEdit();
+        const ticket = tickets.find(t => t.id === id); if (!ticket) return;
+        inlineEditingId = id;
+        const row = document.querySelector(`tr[data-id="${id}"]`); row.classList.add('editing');
+        const cells = row.cells;
+        const fields = ['ticket','date','timeIn','timeOut','customer','jobName','tag','comments'];
+        for (let i=0; i<fields.length; i++) {
+            const field = fields[i]; const cell = cells[i+1];
+            if (field === 'ticket') cell.innerHTML = `<strong>${escapeHtml(ticket.ticket)}</strong>`;
+            else if (field === 'tag') {
+                cell.innerHTML = `<select class="inline-edit" data-field="tag">${['', ...ACTIVE_TAGS, ...EXIT_TAGS].map(opt => `<option value="${opt}" ${ticket.tag===opt?'selected':''}>${opt||'--'}</option>`).join('')}</select>`;
+            } else if (field === 'date') cell.innerHTML = `<input type="date" class="inline-edit" data-field="date" value="${ticket.date||''}">`;
+            else if (field === 'timeIn' || field === 'timeOut') cell.innerHTML = `<input type="time" class="inline-edit" data-field="${field}" value="${ticket[field]||''}">`;
+            else if (field === 'comments') cell.innerHTML = `<textarea class="inline-edit" data-field="comments" rows="1" style="background:var(--card-bg);color:var(--text-primary);border:1px solid var(--accent-blue);border-radius:4px;padding:3px;font-size:0.75rem;width:100%;">${escapeHtml(ticket.comments||'')}</textarea>`;
+            else cell.innerHTML = `<input type="text" class="inline-edit" data-field="${field}" value="${escapeHtml(ticket[field]||'')}">`;
+        }
+        cells[cells.length-1].innerHTML = '<button class="btn btn-success btn-xs save-inline">Save</button> <button class="btn btn-secondary btn-xs cancel-inline">Cancel</button>';
+        row.querySelector('.save-inline').addEventListener('click', () => saveInlineEdit(id));
+        row.querySelector('.cancel-inline').addEventListener('click', cancelInlineEdit);
+        row.querySelectorAll('input, textarea').forEach(inp => inp.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && e.target.tagName !== 'TEXTAREA') { e.preventDefault(); saveInlineEdit(id); }
+        }));
+        const inlineTagSelect = row.querySelector('select[data-field="tag"]');
+        const inlineTimeOut = row.querySelector('input[data-field="timeOut"]');
+        if (inlineTagSelect && inlineTimeOut) {
+            inlineTagSelect.addEventListener('change', () => {
+                if (EXIT_TAGS.includes(inlineTagSelect.value) && !inlineTimeOut.value) {
+                    inlineTimeOut.value = getCurrentTimeString();
+                }
+            });
+        }
+    }
+    function saveInlineEdit(id) {
+        const row = document.querySelector(`tr[data-id="${id}"]`); if (!row) return;
+        const ticket = tickets.find(t => t.id === id); if (!ticket) return;
+        row.querySelectorAll('.inline-edit').forEach(inp => {
+            if (inp.dataset.field === 'ticket') return;
+            ticket[inp.dataset.field] = inp.value;
+        });
+        localStorage.setItem(STORAGE_TICKETS, JSON.stringify(tickets)); inlineEditingId = null; renderDashboard();
+        showToast('Ticket updated (inline).');
+    }
+    function cancelInlineEdit() { inlineEditingId = null; renderDashboard(); }
+    window.clearAll = function() {
+        if (!confirm('Delete ALL dashboard tickets?')) return;
+        const deleted = [...tickets]; tickets = [];
+        localStorage.setItem(STORAGE_TICKETS, JSON.stringify(tickets));
+        storeDeletedForUndo(deleted); selectedTickets.clear(); renderDashboard();
+    };
+
+    function exportTicketArray(arr, filename) {
+        const sheetName = currentUser || 'Tickets';
+        const headers = ['Ticket','Date','Time In','Time Out','Customer','Job Name','Tag','Comments'];
+        const rows = arr.map(t => [t.ticket, t.date, t.timeIn||'', t.timeOut||'', t.customer, t.jobName, t.tag||'', t.comments||'']);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet([headers, ...rows]), sheetName);
+        const blob = new Blob([XLSX.write(wb, { bookType: 'xlsx', type: 'array' })], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+        const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `${filename}.xlsx`;
+        document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    }
+    quickExportBtn.addEventListener('click', () => {
+        if (tickets.length === 0) { showToast('No data.', true); return; }
+        exportTicketArray(tickets, currentUser || 'tickets'); showToast('Exported.');
+    });
+    async function saveExcel(forceNew = false) {
+        if (!currentUser) { showToast('Enter name first.', true); return; }
+        if (tickets.length === 0) { showToast('No data.', true); return; }
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet([
+            ['Ticket','Date','Time In','Time Out','Customer','Job Name','Tag','Comments'],
+            ...tickets.map(t => [t.ticket, t.date, t.timeIn||'', t.timeOut||'', t.customer, t.jobName, t.tag||'', t.comments||''])
+        ]), currentUser);
+        const blob = new Blob([XLSX.write(wb, { bookType: 'xlsx', type: 'array' })], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+        if (supportsFSA) {
+            try {
+                if (forceNew || !excelFileHandle) {
+                    excelFileHandle = await window.showSaveFilePicker({ suggestedName: `${currentUser}.xlsx`, types: [{ accept: { 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': ['.xlsx'] } }] });
+                    await storeFileHandle(excelFileHandle);
+                }
+                const perm = await excelFileHandle.queryPermission({ mode: 'readwrite' });
+                if (perm === 'prompt') await excelFileHandle.requestPermission({ mode: 'readwrite' });
+                const writable = await excelFileHandle.createWritable(); await writable.write(blob); await writable.close();
+                showToast('Excel saved.'); updateSaveIndicator();
+            } catch (err) { if (err.name === 'AbortError') return; quickExportBtn.click(); }
+        } else quickExportBtn.click();
+    }
+    saveExcelBtn.addEventListener('click', () => saveExcel(false));
+    saveAsExcelBtn.addEventListener('click', () => saveExcel(true));
+    importExcelBtn.addEventListener('click', () => importFileInput.click());
+    importFileInput.addEventListener('change', async (e) => {
+        const file = e.target.files[0]; if (!file) return;
+        try {
+            const wb = XLSX.read(await file.arrayBuffer(), { type: 'array' });
+            const ws = wb.Sheets[wb.SheetNames[0]];
+            const data = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '' });
+            if (data.length < 2) throw new Error('Empty');
+            const headers = data[0].map(h => String(h).toLowerCase());
+            const idx = {}; ['ticket','date','time in','time out','customer','job name','tag','comments'].forEach(c => { const i = headers.indexOf(c); if (i===-1) throw new Error(`Missing: ${c}`); idx[c]=i; });
+            const imported = data.slice(1).filter(r => String(r[idx['ticket']]||'').trim()).map((r,i) => ({
+                id: Date.now()+i, ticket: r[idx['ticket']], date: r[idx['date']]||'', timeIn: r[idx['time in']]||'',
+                timeOut: r[idx['time out']]||'', customer: r[idx['customer']]||'', jobName: r[idx['job name']]||'',
+                tag: r[idx['tag']]||'', comments: r[idx['comments']]||''
+            }));
+            if (confirm(`Found ${imported.length}. Replace all?`)) {
+                tickets = imported; localStorage.setItem(STORAGE_TICKETS, JSON.stringify(tickets));
+                selectedTickets.clear(); renderDashboard(); showToast(`Imported ${imported.length}.`);
+            }
+        } catch (err) { showToast(`Error: ${err.message}`, true); } finally { importFileInput.value = ''; }
+    });
+
+    // Explorer
+    async function pickExplorerFolder() {
+        if (!('showDirectoryPicker' in window)) { showToast('File System Access API not supported. Use Chrome/Edge.', true); return; }
+        try {
+            directoryHandle = await window.showDirectoryPicker();
+            await storeDirHandle(directoryHandle);
+            folderNameSpan.textContent = `Folder: ${directoryHandle.name}`;
+            await loadExplorerFiles();
+        } catch (err) { if (err.name !== 'AbortError') showToast(`Error: ${err.message}`, true); }
+    }
+    async function loadExplorerFiles() {
+        if (!directoryHandle) return;
+        try {
+            const excelFiles = [];
+            for await (const entry of directoryHandle.values()) {
+                if (entry.kind === 'file' && (entry.name.endsWith('.xlsx') || entry.name.endsWith('.xls') || entry.name.endsWith('.csv'))) {
+                    const file = await entry.getFile();
+                    excelFiles.push(file);
+                }
+            }
+            if (!excelFiles.length) { showToast('No Excel files found.', true); return; }
+            allExplorerTickets = [];
+            let idCounter = Date.now();
+            for (const file of excelFiles) {
+                const wb = XLSX.read(await file.arrayBuffer(), { type: 'array' });
+                const ws = wb.Sheets[wb.SheetNames[0]];
+                const data = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '' });
+                if (data.length < 2) continue;
+                const headers = data[0].map(h => String(h).toLowerCase());
+                const idx = {}; ['ticket','date','time in','time out','customer','job name','tag','comments'].forEach(c => { const i = headers.indexOf(c); if (i!==-1) idx[c]=i; });
+                if (!idx['ticket'] && !idx['customer']) { showToast(`File "${file.name}" has unrecognized columns.`, true); continue; }
+                data.slice(1).filter(r => String(r[idx['ticket']!==undefined?idx['ticket']:0]||'').trim()).forEach((r) => {
+                    allExplorerTickets.push({
+                        id: idCounter++,
+                        ticket: (idx['ticket']!==undefined?r[idx['ticket']]:'')||'',
+                        date: (idx['date']!==undefined?r[idx['date']]:'')||'',
+                        timeIn: (idx['time in']!==undefined?r[idx['time in']]:'')||'',
+                        timeOut: (idx['time out']!==undefined?r[idx['time out']]:'')||'',
+                        customer: (idx['customer']!==undefined?r[idx['customer']]:'')||'',
+                        jobName: (idx['job name']!==undefined?r[idx['job name']]:'')||'',
+                        tag: (idx['tag']!==undefined?r[idx['tag']]:'')||'',
+                        comments: (idx['comments']!==undefined?r[idx['comments']]:'')||'',
+                        source: file.name
+                    });
+                });
+            }
+            renderExplorer();
+        } catch (err) { showToast(`Error: ${err.message}`, true); }
+    }
+    function renderExplorer() {
+        const query = explorerSearch.value.toLowerCase();
+        const tag = explorerTagFilter.value;
+        let filtered = allExplorerTickets.filter(t => {
+            if (!isWithinPeriod(t, explorerPeriod)) return false;
+            if (tag && t.tag !== tag) return false;
+            return [t.ticket, t.date, t.customer, t.jobName, t.tag, t.comments].join(' ').toLowerCase().includes(query);
+        });
+        const sorted = sortTickets(filtered, explorerSortKey, explorerSortAsc);
+        if (sorted.length === 0) { explorerTable.innerHTML = `<tr><td colspan="8" class="empty-row">No tickets found.</td></tr>`; return; }
+        explorerTable.innerHTML = sorted.map(t => {
+            const tagH = t.tag ? tagHtml(t.tag) : '';
+            return `<tr>
+                <td><strong>${escapeHtml(t.ticket)}</strong></td><td>${t.date}</td>
+                <td>${t.timeIn||'—'}</td><td>${t.timeOut||'—'}</td>
+                <td>${escapeHtml(t.customer)}</td><td>${escapeHtml(t.jobName)}</td>
+                <td>${tagH}</td><td>${escapeHtml(t.comments)}</td>
+            </tr>`;
+        }).join('');
+        document.querySelectorAll('#explorerPage th[data-sort]').forEach(th => { th.classList.toggle('sorted', th.dataset.sort === explorerSortKey); });
+    }
+    exportExplorerBtn.addEventListener('click', () => {
+        if (allExplorerTickets.length === 0) { showToast('No data.', true); return; }
+        exportTicketArray(allExplorerTickets, 'explorer_export');
+        showToast('Explorer data exported.');
+    });
+    pickFolderBtn.addEventListener('click', pickExplorerFolder);
+    refreshBtn.addEventListener('click', async () => {
+        if (directoryHandle) await loadExplorerFiles();
+        else showToast('Select a folder first.', true);
+    });
+    explorerSearch.addEventListener('input', renderExplorer);
+    explorerPeriodBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            explorerPeriodBtns.forEach(b => b.classList.remove('active-filter'));
+            btn.classList.add('active-filter'); explorerPeriod = btn.dataset.period; renderExplorer();
+        });
+    });
+    explorerTagFilter.addEventListener('change', renderExplorer);
+    document.querySelectorAll('#explorerPage th[data-sort]').forEach(th => {
+        th.addEventListener('click', () => {
+            const key = th.dataset.sort;
+            if (explorerSortKey === key) explorerSortAsc = !explorerSortAsc;
+            else { explorerSortKey = key; explorerSortAsc = true; }
+            renderExplorer();
+        });
+    });
+
+    renderDashboard();
+    renderExplorer();
+})();
+</script>
+</body>
+</html>
